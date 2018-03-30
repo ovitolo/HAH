@@ -1,0 +1,28 @@
+SELECT 	
+	pv.Visit
+	,pp.PatientID
+	,RTRIM(RTRIM(pp.Last + ' ' + ISNULL(pp.Suffix,'')) + ', ' + ISNULL(pp.First,'') + ' ' + ISNULL(pp.Middle,'')) as PatientName
+	,df.ListName
+	,pv.Description
+	,ml.Description as Status
+	,pv.firstfileddate
+	,pv.LastFiledDate
+	,pva.PatBalance
+	,pva.InsBalance
+	,ic.ListName as Carrier
+	,pv.Created
+	,pv.Createdby
+	,pv.lastmodified
+	,pv.LastModifiedby 
+FROM PatientVisit as pv 
+JOIN PatientProfile as pp on pv.PatientProfileID = pp.PatientProfileID 
+JOIN DoctorFacility as df on pv.DoctorID = df.DoctorFacilityID
+LEFT JOIN MedLists ml on pv.BillStatus = ml.JoinId AND ml.TableName = 'BillStatus'
+JOIN PatientVisitAgg pva on pv.PatientVisitId = pva.PatientVisitId AND pv.PatientProfileId = pva.PatientProfileID
+LEFT JOIN InsuranceCarriers ic on pv.CurrentInsuranceCarriersId = ic.InsuranceCarriersId
+
+WHERE
+	
+(pv.visit BETWEEN '07-01-2017' and '02-28-2018')
+/*ic.listname like 'VOID%' and 
+d.description <> 'Paid'*/
