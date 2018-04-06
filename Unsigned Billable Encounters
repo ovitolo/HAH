@@ -1,0 +1,38 @@
+select 
+	[DOCUMENT].[PID],
+	[DOCUMENT].[USRID], 
+	[DOCUMENT].[DOCTYPE],
+	dateadd(s,datediff(s,GETUTCDATE() ,getdate()) + (LEFT(document.clinicaldate, LEN(document.clinicaldate) - 6)),'1960-01-01 00:00:00') as DATEOFSERVICE,
+	dateadd(s,datediff(s,GETUTCDATE() ,getdate()) + (LEFT(document.pubtime, LEN(document.pubtime) - 6)),'1960-01-01 00:00:00') as DATEOFSIGNATURE,
+	[DOCUMENT].[LOCOFCARE],
+	[DOCUMENT].[STATUS],
+	[DOCUMENT].[Summary],
+	[DoctorFacility].[DoctorFacilityId],
+	[DoctorFacility].[PVid],
+	[DoctorFacility].[ListName],
+	[DOCTYPES].[DTID],
+	[DOCTYPES].[DESCRIPTION],
+	[PatientProfile].[PId],
+	[PatientProfile].[PatientId],
+	PatientProfile.Last,
+	[LOCREG].[LOCID],
+	[LOCREG].[NAME]
+	from [hh].[dbo].[DOCUMENT]
+	INNER JOIN [hh].[dbo].[DoctorFacility] on
+	[hh].[dbo].[DOCUMENT].[USRID] = [hh].[dbo].[DoctorFacility].[PVid]
+	INNER JOIN [hh].[dbo].[DOCTYPES] on
+	[hh].[dbo].[DOCUMENT].[DOCTYPE] = [hh].[dbo].[DOCTYPES].[DTID]
+	INNER JOIN [hh].[dbo].[PatientProfile] on
+	[hh].[dbo].[PatientProfile].[PId] = [hh].[dbo].[DOCUMENT].[PID]
+	INNER JOIN [hh].[dbo].[LOCREG] on
+	[hh].[dbo].[DOCUMENT].[LOCOFCARE] = [hh].[dbo].[LOCREG].[LOCID]
+	 
+	where dateadd(s,datediff(s,GETUTCDATE() ,getdate()) + (LEFT(document.clinicaldate, LEN(document.clinicaldate) - 6)),'1960-01-01 00:00:00') BETWEEN '2017-01-01' AND '2017-12-31' AND
+	[ListName] <> 'LinkLogic' AND
+	patientprofile.last <> 'test' AND
+	patientprofile.last <> 'tester' AND
+	(doctypes.description like 'Office Visit' OR
+	doctypes.description like 'Outreach Visit' OR
+	doctypes.description like 'Same Day' OR
+	doctypes.description like '%Mental Health%') AND
+	document.pubtime IS NULL
