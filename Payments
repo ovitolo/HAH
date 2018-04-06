@@ -1,0 +1,69 @@
+/*Payments*/
+SELECT     
+	 pm.DateOfEntry AS [Date Of Entry]
+	,pp.[Last] + ', ' + pp.[First] AS Name
+    ,ml.Description AS [Payment Type]
+	,df.ListName
+	,pv.TicketNumber
+	,pvp.Code AS [Procedure Code]
+	,CASE WHEN pm.Source = 2 THEN td.Amount ELSE 0.0000 END AS InsPayment
+	,CASE WHEN pm.Source = 1 THEN td.Amount ELSE 0.0000 END AS PatPayment
+	,pvp.DateOfServiceFrom
+	,ISNULL(CONVERT(varchar(255), tc.Note), ' ') AS Notes
+	,ISNULL(ig.Name, 'No insurance group') AS Insurancegroup
+	,ISNULL(mlf.Description,'No financial class') AS FinancialClass
+	,ic.ListName as InsuranceCarrier
+	,fac.ListName As Facility
+	,fac.Ledger
+
+FROM    PaymentMethod pm
+
+	INNER JOIN VisitTransactions		vt ON pm.PaymentMethodId = vt.PaymentMethodId 
+	INNER JOIN Transactions				tc ON vt.VisitTransactionsId = tc.VisitTransactionsId 
+	INNER JOIN TransactionDistributions	td ON tc.TransactionsId = td.TransactionsId 
+	INNER JOIN PatientVisit				pv ON vt.PatientVisitid = pv.PatientVisitId 
+	INNER JOIN PatientProfile			pp ON pv.PatientProfileId = pp.PatientProfileId 
+	INNER JOIN MedLists					ml ON tc.ActionTypeMId = ml.MedListsId 
+	LEFT JOIN PatientVisitProcs			pvp ON td.PatientVisitProcsId = pvp.PatientVisitProcsId
+	LEFT JOIN InsuranceCarriers			ic ON pv.CurrentInsuranceCarriersId = ic.InsuranceCarriersId
+	LEFT JOIN InsuranceGroup			ig ON ic.InsuranceGroupId = ig.InsuranceGroupId
+	LEFT JOIN MedLists					mlf ON pv.FinancialClassMId= mlf.MedListsId
+	left join doctorfacility			df ON df.DoctorFacilityId = pv.DoctorId
+	left join DoctorFacility			fac ON fac.doctorfacilityid = pv.FacilityId
+
+WHERE     tc.Type = 'P'
+	AND --Filter on Source of Adjustment
+	(
+	('3' = pm.Source)  OR
+	('3' = '3')
+	)
+	AND  --Filter on payment type
+	(
+	(1  = 2  AND tc.ActionTypeMId IN (NULL)) OR
+	(1  = 1)
+	)
+	AND  --Filter on doctor
+	(
+	(NULL IS NOT NULL AND pv.DoctorID IN (NULL)) OR
+	(NULL IS NULL)
+	)
+	AND  --Filter on facility
+	(
+	(NULL IS NOT NULL AND pv.FacilityID IN (NULL)) OR
+	(NULL IS NULL)
+	)
+	AND  --Filter on company
+	(
+	(NULL IS NOT NULL AND pv.CompanyID IN (NULL)) OR
+	(NULL IS NULL)
+	)
+	AND  --Filter on date range
+	(
+	(1 = 1 AND pm.DateOfEntry >= ISNULL('07/01/2017', '1/1/1900') AND pm.DateOfEntry < DATEADD(d,1,ISNULL('02/28/2018','1/1/3000'))) OR
+	(1 <> 1 AND pm.DepositDate >= ISNULL('07/01/2017', '1/1/1900') AND pm.DepositDate < DATEADD(d,1,ISNULL('02/28/2018','1/1/3000')))
+	)
+	AND  --Filter on procedures
+	(
+	(NULL IS NOT NULL AND pvp.ProceduresId IN (NULL)) OR
+	(NULL IS NULL)
+	)
