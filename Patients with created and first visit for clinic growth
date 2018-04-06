@@ -1,0 +1,83 @@
+
+ /* SQL query for new patients with source, appending first visit */
+	select DISTINCT
+	a.PatientID
+	,a.PatientProfileId
+	,a.MedicalRecordNumber
+	,a.Last as PatientLast
+	,a.First as PatientFirst
+	,a.Address1
+	,a.City
+	,a.State
+	,a.Zip
+	,a.Birthdate
+	,a.Sex
+	,a.Phone1
+	,a.Phone1Type
+	,a.Created
+	,a.CreatedBy
+	,a.LastModified
+	,a.LastModifiedBy
+	,a.ReferenceSourceMId
+	,b.Description as Resource_Source
+	,a.PrimaryCareDoctorId
+	,a.NewPatient
+	,d.Last as PCP	
+	,c.DoctorFacilityId as ProviderID	
+	,c.ListName as Provider
+	,e.ListName as Facility
+	,c.Suffix
+	,min(x.visit) as FirstVisitDate
+	,min(x.TicketNumber) as FirstTicket
+	,max(x.visit) as LastVisit
+	,count(x.visit) as VisitCount
+	/*into #temp2*/
+
+	 from dbo.PatientProfile as a
+	left JOIN dbo.Medlists as b
+	 ON a.ReferenceSourceMId = b.MedListsID
+	left join dbo.DoctorFacility as c
+	on a.DoctorId = c.DoctorFacilityId
+	left join dbo.DoctorFacility as d
+	on a.PrimaryCareDoctorId = d.DoctorFacilityId
+	LEFT OUTER JOIN hh.dbo.DoctorFacility as e
+		ON a.FacilityId=e.DoctorFacilityId 
+	 left outer join [dbo].[PatientVisit] as x
+ on a.[PatientProfileId] = x.[PatientProfileId]
+
+
+  where a.Last != 'Test'
+  and a.PatientID NOT IN ('WRHS', '77471', '138739-2238001', '194802-2238001') /* invalid IDs */
+ /* and x.visit > '2000-01-01' /* returns patients who actually had a visit */*/
+   
+ group by 
+	a.PatientID
+	,a.MedicalRecordNumber
+	,a.Last /*as PatientLast*/
+	,a.First /*as PatientFirst*/
+	,a.Address1
+	,a.City
+	,a.State
+	,a.Zip
+	,a.Birthdate
+	,a.Sex
+	,a.Phone1
+	,a.Phone1Type
+	,a.Created
+	,a.CreatedBy
+	,a.LastModified
+	,a.LastModifiedBy
+	,a.ReferenceSourceMId
+	,b.Description /*as Resource_Source*/
+	,a.PrimaryCareDoctorId
+	,a.NewPatient
+	,d.Last /*as PCP	*/
+	,c.DoctorFacilityId /*as Visit_ProviderID	*/
+	,c.ListName /*as Provider*/
+	,e.Listname
+	,c.Suffix
+
+   	order by a.PatientId desc
+
+
+
