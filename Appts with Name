@@ -1,0 +1,75 @@
+/* Canceled Appointments */
+SET NOCOUNT ON
+SELECT 	Convert(Date, ap.ApptStart) ApptDate,
+    ap.ApptStart, 
+	ap.ApptStop,
+	ap.Duration,
+	ap.Created,
+	ap.LastModified,
+	/*aset.ApptSetId, 
+	dbo.asGetApptSetName(ISNULL(aset.ApptSetId,0),ap.AppointmentsId) ApptSetName,
+	ac.ApptChainIdg 
+	ac.Name ApptChainName,*/
+	ml.Description as Status, 
+	--ap.notes,
+	ap.AppointmentsID,
+	ap.TicketNumber,
+	ap.FacilityID, 
+	ap.OwnerID, 
+	ap.ApptKind, 
+	ap.ResourceID,
+	ap.DoctorId,
+	at.Name as ApptType,
+	df.ListName AS Resource,
+	df3.ListName as Doctor,
+	df2.ListName AS Facility,
+	df2.Address1,
+	df2.OrgName,
+	ISNULL(pp.Last,'')+', '+ISNULL(pp.First,'') AS PatientName,
+	pp.PatientID,
+	pp.MedicalRecordNumber,
+	pp.birthdate,
+	StartHour=convert(varchar(2),datepart(hour,ap.ApptStart)), 
+	StartMinute=convert(varchar(2),datepart(minute,ap.ApptStart))
+FROM Appointments ap
+LEFT JOIN ApptChain ac ON ap.ApptChainId = ac.ApptChainId
+LEFT JOIN ApptSet aset ON ap.ApptSetId = aset.ApptSetId
+LEFT JOIN Medlists ml ON ap.ApptStatusMId = ml.MedlistsId
+LEFT JOIN Medlists ml2 ON ap.OwnerId = ml.MedlistsId
+LEFT JOIN ApptType at ON ap.ApptTypeID = at.ApptTypeId
+LEFT JOIN DoctorFacility df ON ap.ResourceID = df.DoctorFacilityID
+LEFT JOIN DoctorFacility df2 ON ap.FacilityID = df2.DoctorFacilityID
+LEFT JOIN DoctorFacility df3 ON ap.DoctorID = df3.DoctorFacilityID
+LEFT JOIN PatientProfile pp ON ap.OwnerID = pp.PatientProfileID
+/*LEFT JOIN PatientVisit pv ON ap.TicketNumber = pv.TicketNumber*/
+
+WHERE 	ap.ApptKind = 1 
+ --               AND
+--	isnull(ap.Canceled,0)<>0 
+                 AND 
+	ap.ApptStart >= '2017-07-01 00:00:00' AND
+	
+
+
+	/*and ml.Description = 'Completed'*/
+	/*and ap.TicketNumber != 0*/
+	/*ap.ApptStart between '01/01/2016 00:00:00' AND '12/31/2016 23:59:59'*/
+	/*and df2.ListName  like '%Chicago%' */ /* Chicago House */
+	
+	AND  --Filter on resource
+	(
+	(NULL IS NOT NULL AND ap.ResourceID IN (NULL)) OR
+	(NULL IS NULL)
+	)
+	AND  --Filter on facility
+	(
+	(NULL IS NOT NULL AND ap.FacilityID IN (NULL)) OR
+	(NULL IS NULL)
+	)
+	AND  --Filter on reason
+	(
+	(NULL IS NOT NULL AND ap.ApptStatusMID = NULL) OR
+	(NULL IS NULL)
+	)
+
+	order by PatientName desc
