@@ -1,0 +1,18 @@
+
+SELECT 
+      pfs.Fee,
+      pfs.Allowed,
+      pfs.CPTCode,
+      pfs.RevenueCode,
+	  fs.FeeScheduleName,
+	  procedures.code as systemcode,
+	  procedures.Description
+  FROM [hh].[dbo].[ProceduresFeeSchedule] pfs
+  join feeschedule fs on 
+	fs.FeeScheduleId = pfs.FeeScheduleId
+  join procedures  on
+	Procedures.ProceduresId = pfs.ProceduresId
+  where fs.InactiveFlag IS NULL  
+    --AND procedures.code = 'T1015'
+--  pfs.fee IS NOT NULL AND
+ -- pfs.CPTCode IS NOT NULL
