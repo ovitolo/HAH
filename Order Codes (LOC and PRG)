@@ -1,0 +1,11 @@
+SELECT 
+	ordercodes.ORDCATID
+      ,ORDERCODES.CODE
+      ,ORDERCODES.DESCRIPTION
+     ,ordercat.catname
+      
+  FROM ORDERCODES
+  left join ordercat on ordercat.ordcatid = ordercodes.ordcatid
+
+  where (ordercat.catname = 'LOC' or ordercat.catname = 'Program Code') AND
+  ordercodes.ORDCODESTATUS = 'A'
