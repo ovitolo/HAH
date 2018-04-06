@@ -1,0 +1,31 @@
+select 
+	DOCUMENT.PID,
+	dateadd(s,datediff(s,GETUTCDATE() ,getdate()) + (LEFT(document.clinicaldate, LEN(document.clinicaldate) - 6)),'1960-01-01 00:00:00') as DATEOFSERVICE,
+	dateadd(s,datediff(s,GETUTCDATE() ,getdate()) + (LEFT(document.pubtime, LEN(document.pubtime) - 6)),'1960-01-01 00:00:00') as DATEOFSIGNATURE,
+	DOCUMENT.STATUS,
+	DOCUMENT.Summary,
+	document.SDID,
+	DoctorFacility.listname as 'List Name',
+	JOBTITLE.DESCRIPTION as Title,
+	DOCTYPES.DESCRIPTION,
+	PatientProfile.PatientId,
+	PatientProfile.Last as 'PatientLast',
+	LOCREG.NAME as LOC
+	
+	from DOCUMENT
+	
+	LEFT JOIN DoctorFacility on DOCUMENT.USRID = DoctorFacility.PVid
+	LEFT JOIN DOCTYPES on DOCUMENT.DOCTYPE = DOCTYPES.DTID
+	LEFT JOIN PatientProfile on PatientProfile.PId = DOCUMENT.PID
+	LEFT JOIN LOCREG on DOCUMENT.LOCOFCARE = LOCREG.LOCID
+	LEFT JOIN jobtitle on jobtitle.jtid = doctorfacility.JobTitleGID
+	
+	where dateadd(s,datediff(s,GETUTCDATE() ,getdate()) + (LEFT(document.clinicaldate, LEN(document.clinicaldate) - 6)),'1960-01-01 00:00:00') >= '2016-07-01' AND
+	dateadd(s,datediff(s,GETUTCDATE() ,getdate()) + (LEFT(document.clinicaldate, LEN(document.clinicaldate) - 6)),'1960-01-01 00:00:00') < '2018-01-01' AND
+	[ListName] <> 'LinkLogic' AND
+	patientprofile.last <> 'test' AND
+	patientprofile.last <> 'tester' AND
+		(doctypes.description like 'Office Visit' OR
+	doctypes.description like 'Outreach Visit' OR
+	doctypes.description like 'Same Day' OR
+	doctypes.description like '%Mental Health%')
