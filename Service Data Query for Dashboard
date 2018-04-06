@@ -1,0 +1,43 @@
+
+ SELECT DISTINCT
+		"PatientVisit"."Visit", 
+		"MedLists"."Description", 
+		"FacilityDoctor"."ListName", 
+		/*"PatientVisitProcs"."Voided", */
+		/*"FacilityDoctor"."DotId", */
+		"PatientProfile"."MedicalRecordNumber", 
+		"PatientProfile".PatientId,
+		"PatientVisit"."TicketNumber",
+		"DoctorFacility".ListName, 
+		"DoctorFacility"."NPI",
+		"DoctorFacility".OrgName, 
+		"DoctorFacility"."Suffix",
+		"PatientVisit"."Entered"
+ FROM   ((((("hh"."dbo"."PatientVisit" "PatientVisit" 
+		left JOIN "hh"."dbo"."PatientVisitProcs" "PatientVisitProcs" 
+			ON "PatientVisit"."PatientVisitId"="PatientVisitProcs"."PatientVisitId") 
+		left JOIN "hh"."dbo"."DoctorFacility" "DoctorFacility" 
+			ON "PatientVisit"."DoctorId"="DoctorFacility"."DoctorFacilityId") 
+		left JOIN "hh"."dbo"."DoctorFacility" "FacilityDoctor" 
+			ON "PatientVisit"."FacilityId"="FacilityDoctor"."DoctorFacilityId") 
+		left JOIN "hh"."dbo"."PatientProfile" "PatientProfile" 
+			ON "PatientVisit"."PatientProfileId"="PatientProfile"."PatientProfileId") 
+		INNER JOIN "hh"."dbo"."Procedures" "Procedures" 
+			ON "PatientVisitProcs"."ProceduresId"="Procedures"."ProceduresId") 
+		INNER JOIN "hh"."dbo"."MedLists" "MedLists" 
+			ON "Procedures"."CPTProcedureCodeQualifierMId"="MedLists"."MedListsId"
+ WHERE ("PatientVisit"."Visit" between '2017-12-01 00:00:00' AND '2017-12-31 23:59:59')
+ 	AND "DoctorFacility"."NPI"<>'""' 
+		/* (("PatientVisit"."Visit" between '2016-02-01 00:00:00' AND '2016-02-29 23:59:59')
+			or  ("PatientVisit"."Visit" between '2017-02-01 00:00:00' AND '2017-02-28 23:59:59'))*/
+		/*AND ("DoctorFacility"."Suffix" LIKE 'APN' OR "DoctorFacility"."Suffix" LIKE 'APN/CNP' OR "DoctorFacility"."Suffix" 
+				LIKE 'APN/CNS' OR "DoctorFacility"."Suffix" LIKE 'APN/NP' OR "DoctorFacility"."Suffix" 
+				LIKE 'CNM/APN' OR "DoctorFacility"."Suffix" LIKE 'DDS' OR "DoctorFacility"."Suffix" 
+				LIKE 'FNP' OR "DoctorFacility"."Suffix" LIKE 'LCPC' OR "DoctorFacility"."Suffix" 
+				LIKE 'LCSW' OR "DoctorFacility"."Suffix" LIKE 'MD' OR "DoctorFacility"."Suffix" 
+				LIKE 'SDDS' OR "DoctorFacility"."Suffix" LIKE 'STDDS') */
+		AND "PatientVisitProcs"."Voided" IS  NULL  
+	AND "MedLists"."Description" like '%HCPC -%'
+	/*("MedLists"."Description"='HCPC - BH' OR "MedLists"."Description"='HCPC - DEN' OR "MedLists"."Description"='HCPC - MED' OR "MedLists"."Description"='HCPC - SA')*/
+ order by "PatientVisit".TicketNumber , "PatientProfile"."MedicalRecordNumber"
+
