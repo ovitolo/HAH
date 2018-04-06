@@ -1,0 +1,26 @@
+
+SELECT 
+      [DateOfEntry]
+      ,[PatientVisitId]
+      ,[Code]
+      ,[CPTCode]
+      ,[CPTProcedureCodeQualifierMId]
+      ,[RevenueCode]
+      ,[Description]
+      ,[Cost]
+      ,[Fee]
+      ,[TotalFee]
+      ,[Allowed]
+      ,[TotalAllowed]
+      ,[RVU]
+      ,[RVUAllowed]
+      ,[CalculatedFee]
+      ,[CalculatedAllowed]
+      ,[ActualAllowed]
+      ,[Units]
+	  ,feeschedule.feeschedulename
+
+  FROM [hh].[dbo].[PatientVisitProcs]
+  left join feeschedule on feeschedule.feescheduleid = patientvisitprocs.feescheduleid
+  where dateofentry >= '2017-01-01' AND
+  Fee <> '0.00'
