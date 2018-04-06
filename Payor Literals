@@ -1,0 +1,8 @@
+
+SELECT 
+      
+	  insurancecarriers.ListName
+	  ,payortable.[Payor]
+      ,insurancecarriers.Inactive
+  FROM [hh].[dbo].[PayorTable]
+  join InsuranceCarriers on InsuranceCarriers.InsuranceCarriersId = payortable.InsuranceCarriersId
