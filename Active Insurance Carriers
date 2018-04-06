@@ -1,0 +1,46 @@
+/* Insurance Carrier List */
+SET NOCOUNT ON
+SELECT 	ic.name as ClaimName, ic.ListName, ic.Address1, ic.Address2, ic.City, ic.State, ic.Zip, ic.Phone1 as Phone, 
+	 ic.Contact,  ic.Inactive, isnull(ml2.description,'No Filing Method') AS InsFilingMethod,
+FilingType= 
+Case 
+When ic.filingtype ='1' then 'Paper'
+When ic.filingtype ='2' then 'Electronic'
+When ic.filingtype is null then 'No Filing Type'
+End ,
+FilingMethod= 
+Case 
+When icc.insurancecarriersid is null then 'None'
+When icc.insurancecarriersid is not null then IsNull(ml.description,'All')
+End , 
+Company= 
+Case 
+When icc.insurancecarriersid is null then 'None'
+When icc.insurancecarriersid is not null then IsNull(df.listname,'All')
+End , 	
+isnull(pi.name,'No Plugin Selected') as PluginName,isnull(icc.ClaimPayerID,'No PayerID entered') As PayerId, IsNull(ch.name,'No Clearinghouse Seleted') as ClearinghouseName,
+OtherPayerName= 
+Case 
+When icid.insurancecarriersidsid is null then 'None'
+When icid.insurancecarriersidsid is not null then isnull(ic2.listname,'All')
+End
+, 
+OtherPayerGroup= 
+Case 
+When icid.insurancecarriersidsid is null then 'None'
+When icid.insurancecarriersidsid is not null then isnull(ig.name,'All')
+End, 
+IsNull(icid.IdNumber,'None') AS OtherPayerID
+
+FROM InsuranceCarriers ic
+	LEFT JOIN InsuranceCarrierCompany icc ON ic.InsuranceCarriersID = icc.InsuranceCarriersID
+	Left Join Medlists ml2 on ic.filingmethodmid=ml2.medlistsid
+	Left Join Medlists ml on icc.filingmethodmid=ml.medlistsid
+	Left Join DoctorFacility df on icc.companyid=df.doctorfacilityid
+	LEFT JOIN Plugin pi ON icc.ClaimPluginID = pi.PluginID
+	LEFT JOIN CLearinghouse ch ON icc.ClaimClearinghouseID = ch.CLearinghouseID
+	LEFT JOIN InsuranceCarriersIDs icid ON ic.InsuranceCarriersID = icid.InsuranceCarriersID
+	Left join InsuranceCarriers ic2 ON icid.localinsuranceCarriersID=ic2.insurancecarriersid
+	Left join InsuranceGroup ig ON icid.insuranceGroupID=ig.insurancegroupid
+WHERE  ic.Inactive = 0
+ORDER BY ic.ListName
